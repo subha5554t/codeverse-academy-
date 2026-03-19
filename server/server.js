@@ -26,6 +26,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   process.env.CLIENT_URL,
+  'https://codeverse-academy-othp.vercel.app',
 ].filter(Boolean)
 
 app.use(cors({
@@ -33,12 +34,12 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
+      console.log('CORS blocked:', origin)
       callback(new Error('Not allowed by CORS'))
     }
   },
   credentials: true,
 }))
-
 // ── MIDDLEWARE ────────────────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }))
 app.use(express.json({ limit: '10kb' }))
