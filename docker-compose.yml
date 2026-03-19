@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+  # ── MongoDB ────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: codeverse_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: codeverse_academy
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - codeverse_net
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ── Backend API ────────────────────────────────────────────
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: codeverse_server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://mongo:27017/codeverse_academy
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - codeverse_net
+
+  # ── Frontend (dev only) ────────────────────────────────────
+  client:
+    image: node:20-alpine
+    container_name: codeverse_client
+    working_dir: /app
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    command: sh -c "npm install && npm run dev -- --host"
+    networks:
+      - codeverse_net
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  codeverse_net:
+    driver: bridge
