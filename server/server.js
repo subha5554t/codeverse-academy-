@@ -21,17 +21,42 @@ const PORT = process.env.PORT || 5000
 
 connectDB()
 
+// ── CORS ──────────────────────────────────────────────────────────────────────
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.CLIENT_URL,
+].filter(Boolean)
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+}))
+
+// ── MIDDLEWARE ────────────────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }))
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }))
 app.use(express.json({ limit: '10kb' }))
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 app.use('/api', limiter)
 
+// ── HEALTH CHECK ──────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'OK', service: 'CodeVerse Academy API', version: '2.0.0', timestamp: new Date().toISOString() })
+  res.json({
+    status: 'OK',
+    service: 'CodeVerse Academy API',
+    version: '2.0.0',
+    timestamp: new Date().toISOString(),
+  })
 })
 
+// ── ROUTES ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',    authRoutes)
 app.use('/api/admin',   adminRoutes)
 app.use('/api/contact', contactRoutes)
@@ -40,6 +65,7 @@ app.use('/api/enroll',  enrollRoutes)
 app.use('/api/domains', domainRoutes)
 app.use('/api/payment', paymentRoutes)
 
+// ── ERROR HANDLING ────────────────────────────────────────────────────────────
 app.use(notFound)
 app.use(errorHandler)
 
