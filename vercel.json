@@ -1,26 +1,12 @@
 {
-  "version": 2,
-  "name": "codeverse-academy",
-  "builds": [
+  "rewrites": [
     {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "https://your-backend-url.com/api/$1"
+      "source": "/api/(.*)",
+      "destination": "https://codeverse-academy-3pza.onrender.com/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_API_URL": "@api_url"
-  }
+  ]
 }
